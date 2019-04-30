@@ -138,19 +138,19 @@ public class Player2 : MonoBehaviour
             set_position();
             Set_Camera();//2-26
             Set_resource();
+            receive_rayshot();
+            receive_Fkey();
+            receive_Zkey();
+            receive_Xkey();
+            receive_Vkey();
+            receive_Ckey();
+            receive_Rkey();
+            Set_status();
         }
         Select_Team();
 
         Mode2();
         Singleton.instance.Receive_MSG();
-        receive_rayshot();
-        receive_Fkey();
-        receive_Zkey();
-        receive_Xkey();
-        receive_Vkey();
-        receive_Ckey();
-        receive_Rkey();
-        Set_status();
         Death();
     }
     public void receive_Fkey()//2-28
@@ -305,7 +305,7 @@ public class Player2 : MonoBehaviour
     }
     public void send_status()
     {
-        Singleton.instance.Send_Status(Player_number, hp, minBullet, maxBullet);
+        Singleton.instance.Send_Status(Player_number, hp, minBullet, maxBullet, Mode, CreateMode2, MaterialMode);
     }
     public void Set_status()
     {

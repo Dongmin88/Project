@@ -138,6 +138,9 @@ public struct sStatus
     public float hp;
     public int bullet_Min;
     public int bullet_Max;
+    public int Mode;
+    public int CreateMode2;
+    public int MaterialMode;
 }
 public struct sObject_Tree
 {
@@ -812,7 +815,7 @@ public class Singleton : MonoBehaviour
     {
         pResource[Player_number].player = 0;
     }
-    public void Send_Status(int Player_Number, float hp, int bullet_Min, int bullet_Max)
+    public void Send_Status(int Player_Number, float hp, int bullet_Min, int bullet_Max,int Mode,int CreateMode2,int MaterialMode)
     {
         sStatus sSt = new sStatus();
         sSt.flag = (char)eMSG.em_USER_STATUS;
@@ -820,6 +823,9 @@ public class Singleton : MonoBehaviour
         sSt.hp = hp;
         sSt.bullet_Min = bullet_Min;
         sSt.bullet_Max = bullet_Max;
+        sSt.Mode = Mode;
+        sSt.CreateMode2 = CreateMode2;
+        sSt.MaterialMode = MaterialMode;
         byte[] data = StructureToByte(sSt);
         Send(C_socket, data);
     }

@@ -23,7 +23,7 @@ public class StoneM : MonoBehaviour
     {
         if (Singleton.instance.pStone.status == 1)
         {
-            DIE_M des_num = Stones[Singleton.instance.pTree.number].GetComponent<DIE_M>();
+            DIE_M des_num = Stones[Singleton.instance.pStone.number].GetComponent<DIE_M>();
             Destroy(des_num.gameObject);
             Singleton.instance.Reset_Stone();
         }

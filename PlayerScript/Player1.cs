@@ -69,7 +69,7 @@ public class Player1 : MonoBehaviour
     int MaxMaterial; // 건설에 필요한 보유 자원
     public int MaterialMode; // 1 = 나무 2 = 나무 3 = 철
 
-    int CreateMode2;
+    int CreateMode2;//V키 누르면 높낮이 설정
     public int layerMask; // 레이 레이어마스크
 
     float Speed = 1.5f;
@@ -139,18 +139,18 @@ public class Player1 : MonoBehaviour
             Set_Camera();//2-26
             set_position();
             Set_resource();
+            receive_rayshot();
+            receive_Fkey();
+            receive_Zkey();
+            receive_Xkey();
+            receive_Vkey();
+            receive_Ckey();
+            receive_Rkey();
+            Set_status();
         }
         Select_Team();
         Mode2();
         Singleton.instance.Receive_MSG();
-        receive_rayshot();
-        receive_Fkey();
-        receive_Zkey();
-        receive_Xkey();
-        receive_Vkey();
-        receive_Ckey();
-        receive_Rkey();
-        Set_status();
         Death();
     }
 
@@ -304,7 +304,7 @@ public class Player1 : MonoBehaviour
     }
     public void send_status()
     {
-        Singleton.instance.Send_Status(Player_number, hp, minBullet, maxBullet);
+        Singleton.instance.Send_Status(Player_number, hp, minBullet, maxBullet, Mode, CreateMode2, MaterialMode);
     }
     public void Set_status()
     {
@@ -313,6 +313,9 @@ public class Player1 : MonoBehaviour
             hp = Singleton.instance.pStatus[Player_number].hp;
             minBullet = Singleton.instance.pStatus[Player_number].bullet_Min;
             maxBullet = Singleton.instance.pStatus[Player_number].bullet_Max;
+            Mode = Singleton.instance.pStatus[Player_number].Mode;
+            CreateMode2 = Singleton.instance.pStatus[Player_number].CreateMode2;
+            MaterialMode = Singleton.instance.pStatus[Player_number].MaterialMode;
             Singleton.instance.Reset_status(Player_number);
         }
     }
