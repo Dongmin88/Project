@@ -21,23 +21,11 @@ public class TreeM : MonoBehaviour
     }
     public void Destroy_tree()
     {
-        if (Singleton.instance.pTree.flag == (char)eMSG.em_OBJECT_TREE)
+        if (Singleton.instance.pTree.status == 1)
         {
-            int Num = Singleton.instance.pTree.number;
-            for (int i = 0; i < trees.Length; i++)
-            {
-                DIE_M des_num= trees[i].GetComponent<DIE_M>();
-                if (des_num != null)
-                {
-                    if (Num == des_num.Num)
-                    {
-                        Destroy(des_num.gameObject);
-                        Singleton.instance.Reset_Tree();
-                        trees = gameObject.GetComponentsInChildren<Transform>();
-                        Length = trees.Length;
-                    }
-                }
-            }
+            DIE_M des_num = trees[Singleton.instance.pTree.number].GetComponent<DIE_M>();
+            Destroy(des_num.gameObject);
+            Singleton.instance.Reset_Tree();
         }
 
     }

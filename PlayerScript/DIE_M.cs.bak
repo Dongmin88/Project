@@ -4,17 +4,16 @@ using UnityEngine;
 
 public class DIE_M : MonoBehaviour
 {
-    public int Num;
     Player1 Pa;
     Player2 Pa2;
     Player3 Pa3;
     Player4 Pa4;
-    public int survive;//0 죽음, 1 살아있음
+
     int hp = 10;
+    public int Code;
     // Use this for initialization
     void Start()
     {
-        survive = 1;
         Pa = FindObjectOfType<Player1>();
         Pa2 = FindObjectOfType<Player2>();
         Pa3 = FindObjectOfType<Player3>();
@@ -43,22 +42,19 @@ public class DIE_M : MonoBehaviour
             }
             if (hp <= 0)
             {
-                if (this.transform.tag == "wood" && survive == 1)
+                if (this.transform.tag == "wood")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Tree(Num);
+                    Singleton.instance.Send_Tree(this.name);
                 }
-                else if (this.transform.tag == "stone" && survive == 1)
+                else if (this.transform.tag == "stone")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Stone(Num);
+                    Singleton.instance.Send_Stone(this.name);
                 }
-                else if (this.transform.tag == "BulletBox" && survive == 1)
+                else if (this.transform.tag == "BulletBox")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Bullet(Num);
+                    Singleton.instance.Send_Bullet(this.name);
                 }
-                StartCoroutine("Destroy_Object");
+                Destroy(gameObject);
             }
         }
         if (Player_number == 2)
@@ -78,22 +74,19 @@ public class DIE_M : MonoBehaviour
             }
             if (hp <= 0)
             {
-                if (this.transform.tag == "wood" && survive == 1)
+                if (this.transform.tag == "wood")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Tree(Num);
+                    Singleton.instance.Send_Tree(this.name);
                 }
-                else if (this.transform.tag == "stone" && survive == 1)
+                else if (this.transform.tag == "stone")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Stone(Num);
+                    Singleton.instance.Send_Stone(this.name);
                 }
-                else if (this.transform.tag == "BulletBox" && survive == 1)
+                else if (this.transform.tag == "BulletBox")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Bullet(Num);
+                    Singleton.instance.Send_Bullet(this.name);
                 }
-                StartCoroutine("Destroy_Object");
+                Destroy(gameObject);
             }
         }
         if (Player_number == 3)
@@ -113,22 +106,19 @@ public class DIE_M : MonoBehaviour
             }
             if (hp <= 0)
             {
-                if (this.transform.tag == "wood" && survive == 1)
+                if (this.transform.tag == "wood")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Tree(Num);
+                    Singleton.instance.Send_Tree(this.name);
                 }
-                else if (this.transform.tag == "stone" && survive == 1)
+                else if (this.transform.tag == "stone")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Stone(Num);
+                    Singleton.instance.Send_Stone(this.name);
                 }
-                else if (this.transform.tag == "BulletBox" && survive == 1)
+                else if (this.transform.tag == "BulletBox")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Bullet(Num);
+                    Singleton.instance.Send_Bullet(this.name);
                 }
-                StartCoroutine("Destroy_Object");
+                Destroy(gameObject);
             }
         }
         if (Player_number == 4)
@@ -148,28 +138,20 @@ public class DIE_M : MonoBehaviour
             }
             if (hp <= 0)
             {
-                if (this.transform.tag == "wood" && survive == 1)
+                if (this.transform.tag == "wood")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Tree(Num);
+                    Singleton.instance.Send_Tree(this.name);
                 }
-                else if (this.transform.tag == "stone" && survive == 1)
+                else if (this.transform.tag == "stone")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Stone(Num);
+                    Singleton.instance.Send_Stone(this.name);
                 }
-                else if (this.transform.tag == "BulletBox" && survive == 1)
+                else if (this.transform.tag == "BulletBox")
                 {
-                    survive = 0;
-                    Singleton.instance.Send_Bullet(Num);
+                    Singleton.instance.Send_Bullet(this.name);
                 }
-                StartCoroutine("Destroy_Object");
+                Destroy(gameObject);
             }
         }
-    }
-    IEnumerator Destroy_Object()
-    {
-        yield return new WaitForSeconds(0.1f);
-        gameObject.SetActive(false);
     }
 }

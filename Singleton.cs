@@ -142,17 +142,28 @@ public struct sStatus
 public struct sObject_Tree
 {
     public char flag;
+    public int status;
     public int number;
 }
 public struct sObject_Stone
 {
     public char flag;
+    public int status;
     public int number;
 }
 public struct sObject_bullet
 {
     public char flag;
+    public int status;
     public int number;
+}
+public class sCreateBox_Floor
+{
+    public char flag;
+    public int kind;
+    public float fx;
+    public float fy;
+    public float fz;
 }
 public class stateObject
 {
@@ -530,6 +541,7 @@ public class Singleton : MonoBehaviour
             }
         }
     }
+
     //F_KEY
     public void Send_FkeyMSG(int player)
     {
@@ -827,10 +839,15 @@ public class Singleton : MonoBehaviour
     {
         pStatus[Player_number].player = 0;
     }
+    public void Reset_Camera(int Player_number)
+    {
+        pCamera[Player_number].player = 0;
+    }
     public void Send_Tree(int number)
     {
         sObject_Tree sOT = new sObject_Tree();
         sOT.flag = (char)eMSG.em_OBJECT_TREE;
+        sOT.status = 1;
         sOT.number = number;
         byte[] data = StructureToByte(sOT);
         Send(C_socket, data);
@@ -841,13 +858,13 @@ public class Singleton : MonoBehaviour
     }
     public void Reset_Tree()
     {
-        pTree.flag = ' ';
-        pTree.number = 0;
+        pTree.status = 0;
     }
     public void Send_Stone(int number)
     {
         sObject_Stone sOS = new sObject_Stone();
         sOS.flag = (char)eMSG.em_OBJECT_STONE;
+        sOS.status = 1;
         sOS.number = number;
         byte[] data = StructureToByte(sOS);
         Send(C_socket, data);
@@ -858,14 +875,14 @@ public class Singleton : MonoBehaviour
     }
     public void Reset_Stone()
     {
-        pStone.flag = ' ';
-        pStone.number = 0;
+        pStone.status = 0;
     }
     public void Send_Bullet(int number)
     {
         sObject_bullet sOB = new sObject_bullet();
         sOB.flag = (char)eMSG.em_OBJECT_BULLET;
         sOB.number = number;
+        sOB.status = 1;
         byte[] data = StructureToByte(sOB);
         Send(C_socket, data);
     }
@@ -875,7 +892,6 @@ public class Singleton : MonoBehaviour
     }
     public void Reset_Bullet()
     {
-        pBullet.flag = ' ';
-        pBullet.number = 0;
+        pBullet.status = 0;
     }
 }

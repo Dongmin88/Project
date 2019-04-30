@@ -12,7 +12,7 @@ public class soundmgr : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        soundvalue = PlayerPrefs.GetFloat("soundval", 1.0f);
+        soundvalue = PlayerPrefs.GetFloat("soundval");
         sound.value = soundvalue;
         audio.volume = sound.value;
     }
@@ -27,6 +27,6 @@ public class soundmgr : MonoBehaviour
     {
         audio.volume = sound.value;
         soundvalue = sound.value;
-        soundvalue = PlayerPrefs.GetFloat("soundval", soundvalue);
+        PlayerPrefs.SetFloat("soundval",soundvalue);
     }
 }

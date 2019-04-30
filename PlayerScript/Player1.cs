@@ -34,6 +34,9 @@ public class Player1 : MonoBehaviour
     public Transform FirePosition;
     public ParticleSystem PS;
     public GameObject P_position;
+    public GameObject Menu;
+    public AudioClip ShotSound;
+    public AudioClip AttackSound;
     Slider HpBar;
     Camera cam;
 
@@ -115,7 +118,7 @@ public class Player1 : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Cursor.visible = false; // 마우스커서 Off
+
         if (player == Player_number)
         {
             UiText(); // UI 업데이트 요소 함수
@@ -132,11 +135,12 @@ public class Player1 : MonoBehaviour
             Multi_UiText();
             Mostion();
             shotHit();
+            transform.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("EFValue");
+            Set_Camera();//2-26
+            set_position();
+            Set_resource();
         }
         Select_Team();
-        set_position();
-        Set_Camera();//2-26
-        Set_resource();
         Mode2();
         Singleton.instance.Receive_MSG();
         receive_rayshot();
@@ -149,6 +153,7 @@ public class Player1 : MonoBehaviour
         Set_status();
         Death();
     }
+
     public void receive_Fkey()//2-28
     {
         if (Player_number == Singleton.instance.pFkey[Player_number].player)
@@ -248,6 +253,9 @@ public class Player1 : MonoBehaviour
             player = Singleton.instance.Team_number;
             if (player == Player_number)
             {
+                Camera2.transform.GetComponent<AudioListener>().enabled = false;
+                Camera3.transform.GetComponent<AudioListener>().enabled = false;
+                Camera4.transform.GetComponent<AudioListener>().enabled = false;
                 Camera1.enabled = true;
                 Camera2.enabled = false;
                 Camera3.enabled = false;
@@ -268,7 +276,6 @@ public class Player1 : MonoBehaviour
     }//controle 서버
     public void send_Camera()
     {
-   
         float dx = camrotation.transform.eulerAngles.x;
         float dy = camrotation.transform.eulerAngles.y;
         float dz = camrotation.transform.eulerAngles.z;
@@ -279,6 +286,7 @@ public class Player1 : MonoBehaviour
         if (Player_number == Singleton.instance.pCamera[Player_number].player)
         {
             camrotation.transform.eulerAngles = new Vector3(Singleton.instance.pCamera[Player_number].cx, Singleton.instance.pCamera[Player_number].cy, Singleton.instance.pCamera[Player_number].cz);
+            Singleton.instance.Reset_Camera(Player_number);
         }
     }//update 서버 2-26
     public void send_resource()
@@ -312,7 +320,10 @@ public class Player1 : MonoBehaviour
     {
         RaycastHit rayhit;
         if (Mode == 1 && minBullet > 0) //사격 모드 레이 03.04 수정중
-        {   
+        {
+            transform.GetComponent<AudioSource>().clip = ShotSound;
+            transform.GetComponent<AudioSource>().maxDistance = 100;
+            transform.GetComponent<AudioSource>().Play();
             GameObject gShot = Instantiate(shot, shotposition);
             Instantiate(ShotFire, FirePosition);
             Instantiate(ShotFire2, FirePosition);
@@ -367,9 +378,12 @@ public class Player1 : MonoBehaviour
                 }
             }
         }
-        else
+        else if(Mode==0)
         {
             Atk = true;
+            transform.GetComponent<AudioSource>().clip = AttackSound;
+            transform.GetComponent<AudioSource>().maxDistance = 1;
+            transform.GetComponent<AudioSource>().Play();
         }
     }
     public void UiText()
@@ -410,74 +424,86 @@ public class Player1 : MonoBehaviour
     }
     public void CharacterControl()
     {
-        MouseY += Speed * Input.GetAxis("Mouse X");
-        MouseX += Speed * Input.GetAxis("Mouse Y");
-        MouseX = Mathf.Clamp(MouseX, -60f, 60f); // 마우스 최소값 최대값 설정
-        this.transform.eulerAngles = new Vector3(0, MouseY, 0);
-        camrotation.transform.eulerAngles = new Vector3(-MouseX,Shotcam+MouseY, 0); // 마우스 위 아래 좌표 따라 변경
-        P_position.transform.localRotation = Quaternion.Euler(0,Shotcam, 0);
-        CreateDelay += Time.deltaTime;
-        Mostion();
-        CharecterMove();
-        if (Input.GetKeyDown(KeyCode.F)&& CreateDelay > 1) // 채집 모드 사격 모드 건설 모드 변경 키 0 == 채집 1 == 사격 2 == 건설
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            Singleton.instance.Send_FkeyMSG(Player_number);
-            set_Fkey();//28일 수정
-        }
-        if (Input.GetKeyDown(KeyCode.R))// 총알 재장전
-        {
-            Singleton.instance.Send_RkeyMSG(Player_number);
-            BulletReload();
-        }
-        if (Mode == 2)
-        {
-            if (Input.GetKeyDown(KeyCode.Z)) // 건설모드 시 바닥 오브젝트로 변경
+            if (Menu.active)
             {
-                Singleton.instance.Send_ZkeyMSG(Player_number);
-                set_Zkey();
+                Menu.SetActive(false);
             }
-            else if (Input.GetKeyDown(KeyCode.X)) // 건설모드 시 벽 오브젝트로 변경
+            else if (!Menu.active)
             {
-                Singleton.instance.send_XkeyMSG(Player_number);
-                set_Xkey();
-                //selobj = objCreate2;
-            }
-            else if (Input.GetKeyDown(KeyCode.C))
-            {
-                Singleton.instance.Send_CkeyMSG(Player_number);
-                set_Ckey();
-            }
-            if (Input.GetKeyDown(KeyCode.V)) //빌드 박스 위치 전환 
-            {
-                Singleton.instance.Send_VkeyMSG(Player_number);
-                set_Vkey();
-            }
-            if (Buildbox.active) //3.5 수정
-            {
-                //Singleton.instance.Send_Buildbox1MSG(Player_number);
-                buildbox1();
+                Menu.SetActive(true);
+                Cursor.visible = true;
             }
         }
-        if (Input.GetMouseButtonUp(0) && CreateDelay > 0.5f)
+        if (!Menu.active)
         {
-            send_rayshot();
-            Rays(); // 2.26일 수정
-            CreateDelay = 0;
-        }
-        if (Input.GetKey(KeyCode.LeftShift))//달리기
-        {
-            MoveSpeed = 0.8f;
-            ani.SetBool("Run", true);
-        }
-        else
-        {
-            MoveSpeed = 0.5f;
-            ani.SetBool("Run", false);
-        }
-        if (Input.GetKeyDown(KeyCode.Space) && JumpCheck) //점프
-        {
-            r_body.AddForce(new Vector3(0, 3, 0), ForceMode.Impulse);
-            JumpCheck = false;
+            Cursor.visible = false;
+            CreateDelay += Time.deltaTime;
+            Mostion();
+            CharecterMove();
+            MouseMove();
+            transform.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("EFValue");
+            if (Input.GetKeyDown(KeyCode.F) && CreateDelay > 0.5f) // 채집 모드 사격 모드 건설 모드 변경 키 0 == 채집 1 == 사격 2 == 건설
+            {
+                Singleton.instance.Send_FkeyMSG(Player_number);
+                set_Fkey();//28일 수정
+            }
+            if (Input.GetKeyDown(KeyCode.R))// 총알 재장전
+            {
+                Singleton.instance.Send_RkeyMSG(Player_number);
+                BulletReload();
+            }
+            if (Mode == 2)
+            {
+                if (Input.GetKeyDown(KeyCode.Z)) // 건설모드 시 바닥 오브젝트로 변경
+                {
+                    Singleton.instance.Send_ZkeyMSG(Player_number);
+                    set_Zkey();
+                }
+                else if (Input.GetKeyDown(KeyCode.X)) // 건설모드 시 벽 오브젝트로 변경
+                {
+                    Singleton.instance.send_XkeyMSG(Player_number);
+                    set_Xkey();
+                    //selobj = objCreate2;
+                }
+                else if (Input.GetKeyDown(KeyCode.C))
+                {
+                    Singleton.instance.Send_CkeyMSG(Player_number);
+                    set_Ckey();
+                }
+                if (Input.GetKeyDown(KeyCode.V)) //빌드 박스 위치 전환 
+                {
+                    Singleton.instance.Send_VkeyMSG(Player_number);
+                    set_Vkey();
+                }
+                if (Buildbox.active) //3.5 수정
+                {
+                    //Singleton.instance.Send_Buildbox1MSG(Player_number);
+                    buildbox1();
+                }
+            }
+            if (Input.GetMouseButtonUp(0) && CreateDelay > 0.5f)
+            {
+                send_rayshot();
+                Rays(); // 2.26일 수정
+                CreateDelay = 0;
+            }
+            if (Input.GetKey(KeyCode.LeftShift))//달리기
+            {
+                MoveSpeed = 0.8f;
+                ani.SetBool("Run", true);
+            }
+            else
+            {
+                MoveSpeed = 0.5f;
+                ani.SetBool("Run", false);
+            }
+            if (Input.GetKeyDown(KeyCode.Space) && JumpCheck) //점프
+            {
+                r_body.AddForce(new Vector3(0, 3, 0), ForceMode.Impulse);
+                JumpCheck = false;
+            }
         }
     }
     private void OnTriggerStay(Collider other)//03.07
@@ -755,7 +781,7 @@ public class Player1 : MonoBehaviour
     }
     IEnumerator Destroy()
     {
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(0.1f);
         if (player == Player_number)
             SceneManager.LoadScene("GameOver");
         Destroy(gameObject);
@@ -764,35 +790,46 @@ public class Player1 : MonoBehaviour
     {
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
-        Vector3 position = new Vector3(x, 0, z);
-        transform.position += ((P_position.transform.rotation * position) * MoveSpeed) * Time.deltaTime;
-        if (z < 0)
-        {
-            if (MoveSpeed > 0.5f)
+            Vector3 position = new Vector3(x, 0, z);
+            transform.position += ((P_position.transform.rotation * position) * MoveSpeed) * Time.deltaTime;
+            if (z < 0)
             {
-                ani.SetBool("Run", true);
+                if (MoveSpeed > 0.5f)
+                {
+                    ani.SetBool("Run", true);
+                }
+                else
+                {
+                    ani.SetBool("BMove", true);
+                }
+            }
+            else if (Mathf.Abs(x) > 0 || z > 0)
+            {
+                if (MoveSpeed > 0.5f)
+                {
+                    ani.SetBool("Run", true);
+                }
+                else
+                {
+                    ani.SetBool("FMove", true);
+                }
             }
             else
             {
-                ani.SetBool("BMove", true);
+                ani.SetBool("FMove", false);
+                ani.SetBool("BMove", false);
+                ani.SetBool("Run", false);
             }
-        }
-        else if (Mathf.Abs(x) > 0 || z > 0)
-        {
-            if (MoveSpeed > 0.5f)
-            {
-                ani.SetBool("Run", true);
-            }
-            else
-            {
-                ani.SetBool("FMove", true);
-            }
-        }
-        else
-        {
-            ani.SetBool("FMove", false);
-            ani.SetBool("BMove", false);
-        }
+    }
+    void MouseMove()
+    {
+        MouseY += Speed * Input.GetAxis("Mouse X");
+        MouseX += Speed * Input.GetAxis("Mouse Y");
+        MouseX = Mathf.Clamp(MouseX, -60f, 60f); // 마우스 최소값 최대값 설정
+        this.transform.eulerAngles = new Vector3(0, MouseY, 0);
+        camrotation.transform.eulerAngles = new Vector3(-MouseX, Shotcam + MouseY, 0); // 마우스 위 아래 좌표 따라 변경
+        P_position.transform.localRotation = Quaternion.Euler(0, Shotcam, 0);
+
     }
     void Mostion() // 3.19 추가 캐릭터 애니메이션
     {

@@ -21,23 +21,12 @@ public class BulletM : MonoBehaviour
     }
     public void Destroy_bullet()
     {
-        if (Singleton.instance.pBullet.flag == (char)eMSG.em_OBJECT_BULLET)
+        if (Singleton.instance.pBullet.status == 1)
         {
-            int Num = Singleton.instance.pTree.number;
-            for (int i = 0; i < bullets.Length; i++)
-            {
-                DIE_M des_num = bullets[i].GetComponent<DIE_M>();
-                if (des_num != null)
-                {
-                    if (Num == des_num.Num)
-                    {
-                        Destroy(des_num.gameObject);
-                        Singleton.instance.Reset_Tree();
-                        bullets = gameObject.GetComponentsInChildren<Transform>();
-                        length = bullets.Length;
-                    }
-                }
-            }
+            DIE_M des_num = bullets[Singleton.instance.pBullet.number].GetComponent<DIE_M>();
+            Destroy(des_num.gameObject);
+            Singleton.instance.Reset_Bullet();
+
         }
 
     }

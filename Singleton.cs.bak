@@ -28,6 +28,9 @@ enum eMSG
     em_USER_GAMEDEATH,
     em_USER_RESOURCE,
     em_USER_STATUS,
+    em_OBJECT_TREE,
+    em_OBJECT_STONE,
+    em_OBJECT_BULLET,
 };
 public struct sFlag//flag
 {
@@ -136,6 +139,21 @@ public struct sStatus
     public int bullet_Min;
     public int bullet_Max;
 }
+public struct sObject_Tree
+{
+    public char flag;
+    public string name;
+}
+public struct sObject_Stone
+{
+    public char flag;
+    public string name;
+}
+public struct sObject_bullet
+{
+    public char flag;
+    public string name;
+}
 public class stateObject
 {
     public Socket worksocket = null;
@@ -173,6 +191,9 @@ public class Singleton : MonoBehaviour
     public sGamedeath[] pGamedeath = new sGamedeath[5];
     public sResource[] pResource = new sResource[5];
     public sStatus[] pStatus = new sStatus[5];
+    public sObject_Tree pTree = new sObject_Tree();
+    public sObject_Stone pStone = new sObject_Stone();
+    public sObject_bullet pBullet = new sObject_bullet();
     // Start is called before the first frame update
     void Awake()
     {
@@ -195,7 +216,6 @@ public class Singleton : MonoBehaviour
     {
         var ep = new IPEndPoint(IPAddress.Parse("192.168.0.7"), 10000);//127.0.0.1
         C_socket.BeginConnect(ep, new AsyncCallback(ConnectCallback), C_socket);
-
     }
     private void Send(Socket client, byte[] buff)//send
     {
@@ -208,7 +228,6 @@ public class Singleton : MonoBehaviour
             stateObject state = new stateObject();
             state.worksocket = client;
             client.BeginReceive(state.buffer, 0, stateObject.buffersize, 0, new AsyncCallback(ReceiveCallback), state);
-
         }
         catch (Exception e)
         {
@@ -263,7 +282,6 @@ public class Singleton : MonoBehaviour
             {
                 state.sb.Append(Encoding.UTF8.GetString(state.buffer, 0, bytesread));
                 client.BeginReceive(state.buffer, 0, stateObject.buffersize, 0, new AsyncCallback(ReceiveCallback), state);
-
             }
             else
             {
@@ -355,6 +373,18 @@ public class Singleton : MonoBehaviour
         else if (Flag.flag == (char)eMSG.em_USER_STATUS)
         {
             Set_status(state.buffer);//상태값
+        }
+        else if (Flag.flag == (char)eMSG.em_OBJECT_TREE)
+        {
+            Set_Tree(state.buffer);
+        }
+        else if (Flag.flag == (char)eMSG.em_OBJECT_STONE)
+        {
+            Set_Stone(state.buffer);
+        }
+        else if (Flag.flag==(char)eMSG.em_OBJECT_BULLET)
+        {
+            Set_Bullet(state.buffer);
         }
     }
 
@@ -794,5 +824,55 @@ public class Singleton : MonoBehaviour
     {
         pStatus[Player_number].player = 0;
     }
-    
+    public void Send_Tree(string name)
+    {
+        sObject_Tree sOT = new sObject_Tree();
+        sOT.flag = (char)eMSG.em_OBJECT_TREE;
+        sOT.name = name;
+        byte[] data = StructureToByte(sOT);
+        Send(C_socket,data);
+    }
+    public void Set_Tree(byte[] buffer)
+    {
+        pTree = (sObject_Tree)BytetoStruct(buffer, typeof(sObject_Tree), 256);
+    }
+    public void Reset_Tree()
+    {
+        pTree.flag = ' ';
+        pTree.name = "";
+    }
+    public void Send_Stone(string name)
+    {
+        sObject_Stone sOS = new sObject_Stone();
+        sOS.flag = (char)eMSG.em_OBJECT_STONE;
+        sOS.name = name;
+        byte[] data = StructureToByte(sOS);
+        Send(C_socket, data);
+    }
+    public void Set_Stone(byte[] buffer)
+    {
+        pStone = (sObject_Stone)BytetoStruct(buffer, typeof(sObject_Stone), 256);
+    }
+    public void Reset_Stone()
+    {
+        pStone.flag = ' ';
+        pStone.name = "";
+    }
+    public void Send_Bullet(string name)
+    {
+        sObject_bullet sOB = new sObject_bullet();
+        sOB.flag = (char)eMSG.em_OBJECT_BULLET;
+        sOB.name = name;
+        byte[] data = StructureToByte(sOB);
+        Send(C_socket, data);
+    }
+    public void Set_Bullet(byte[] buffer)
+    {
+        pBullet = (sObject_bullet)BytetoStruct(buffer, typeof(sObject_bullet), 256);
+    }
+    public void Reset_Bullet()
+    {
+        pBullet.flag = ' ';
+        pBullet.name = "";
+    }
 }

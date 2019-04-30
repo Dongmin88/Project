@@ -1,0 +1,37 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class BulletM : MonoBehaviour
+{
+    Transform[] bullets;
+    public int length;
+    // Start is called before the first frame update
+    void Start()
+    {
+        bullets = gameObject.GetComponentsInChildren<Transform>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        Destroy_bullet();
+    }
+    public void Destroy_bullet()
+    {
+        if (Singleton.instance.pBullet.flag == (char)eMSG.em_OBJECT_BULLET)
+        {
+            string ref_name = Singleton.instance.pBullet.name;
+            for (int i = 0; i < bullets.Length; i++)
+            {
+                if (ref_name.Equals(bullets[i].name))
+                {
+
+                    Destroy(bullets[i].gameObject);
+                    Singleton.instance.Reset_Bullet();
+                }
+            }
+        }
+        length = bullets.Length;
+    }
+}
