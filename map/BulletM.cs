@@ -19,7 +19,7 @@ public class BulletM : MonoBehaviour
     {
         Destroy_bullet();
     }
-    public void Destroy_bullet()
+    public void Destroy_bullet() // 오브젝트 파괴 시 서버에 번호를 넘겨줌
     {
         if (Singleton.instance.pBullet.status == 1)
         {
@@ -30,7 +30,7 @@ public class BulletM : MonoBehaviour
         }
 
     }
-    public void Set_Num()
+    public void Set_Num()//시작 시 오브젝트 번호 설정
     {
         for (int i = 0; i < bullets.Length; i++)
         {

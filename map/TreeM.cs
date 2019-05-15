@@ -19,7 +19,7 @@ public class TreeM : MonoBehaviour
     {
         Destroy_tree();
     }
-    public void Destroy_tree()
+    public void Destroy_tree() //오브젝트 파괴 시 번호를 서버에 넘겨줌
     {
         if (Singleton.instance.pTree.status == 1)
         {
@@ -29,7 +29,7 @@ public class TreeM : MonoBehaviour
         }
 
     }
-    public void Set_Num()
+    public void Set_Num() // 오브젝트 번호 설정
     {
         for (int i = 0; i < trees.Length; i++)
         {

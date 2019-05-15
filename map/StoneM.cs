@@ -19,7 +19,7 @@ public class StoneM : MonoBehaviour
     {
         Destroy_Stone();
     }
-    public void Destroy_Stone()
+    public void Destroy_Stone()//오브젝트 파괴시 서버에 정보를 넘겨줌
     {
         if (Singleton.instance.pStone.status == 1)
         {
@@ -29,7 +29,7 @@ public class StoneM : MonoBehaviour
         }
 
     }
-    public void Set_Num()
+    public void Set_Num()// 시작시 오브젝트 번호 설정
     {
         for (int i = 0; i < Stones.Length; i++)
         {

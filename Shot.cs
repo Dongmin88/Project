@@ -5,38 +5,77 @@ using UnityEngine.SceneManagement;
 public class Shot : MonoBehaviour {
     //총알 발사
     float Power;
+    float Range;
     public int layermask;
+    public string Gun;
+    Transform tr;
 	void Start () {
-        Power = 10;
-        GetComponent<Rigidbody>().AddForce(transform.forward * 400, ForceMode.Force);
+
+        tr = transform;
+        transform.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("EFValue");
+        transform.GetComponent<AudioSource>().Play();
+        layermask += (-1) - (1 << 14) + (-1)-(1<<gameObject.layer);
+        if (transform.name.Equals("AK-74m")||transform.name.Equals("M4A1_PBR")) // 총기 정보를 받아와 데미지 및 사정거리 설정
+        {
+            Range = 15;
+            Power = 5;
+            if (transform.name.Equals("AK-74m"))
+            {
+                Power += 2;
+            }
+        }
+        else if(transform.name.Equals("RevolverM1879"))
+        {
+            Range = 10;
+            Power = 15;
+        }
+        ray();
+        Destroy(gameObject,0.1f);
     }
 	void Update () {
-        ray();
 	}
-    void ray()
+    void ray() // 총알 피격 체크
     {
         RaycastHit hit;
-        Debug.DrawRay(transform.position, transform.forward * 0.2f, Color.red, 5f);
-        if(Physics.Raycast(transform.position,transform.forward,out hit,0.2f,layermask))
+        if(Physics.Raycast(transform.position,transform.forward,out hit, Range, layermask))
         {
             if (hit.transform.tag == "Player")
             {
-                hit.transform.GetComponent<Rigidbody>().AddForce(hit.transform.GetComponent<Rigidbody>().velocity = new Vector3(0, 0.5f, 0) + transform.forward * 0.5f);
                 if (hit.transform.name.Equals("Player1"))
                 {
                     hit.transform.GetComponent<Player1>().b_hit = true;
+                    hit.transform.GetComponent<Player1>().hp -= Power;
+                    if(hit.transform.GetComponent<Player1>().hp <= 0)
+                    {
+                        hit.transform.GetComponent<Player1>().GetComponent<Rigidbody>().velocity = new Vector3(0, 1, 0)+ tr.transform.forward * 1;
+                    }
                 }
                 else if (hit.transform.name.Equals("Player2"))
                 {
                     hit.transform.GetComponent<Player2>().b_hit = true;
+                    hit.transform.GetComponent<Player2>().hp -= Power;
+                    if (hit.transform.GetComponent<Player2>().hp <= 0)
+                    {
+                        hit.transform.GetComponent<Player2>().GetComponent<Rigidbody>().velocity = new Vector3(0, 1, 0) + tr.transform.forward * 1;
+                    }
                 }
                 else if (hit.transform.name.Equals("Player3"))
                 {
                     hit.transform.GetComponent<Player3>().b_hit = true;
+                    hit.transform.GetComponent<Player3>().hp -= Power;
+                    if (hit.transform.GetComponent<Player3>().hp <= 0)
+                    {
+                        hit.transform.GetComponent<Player3>().GetComponent<Rigidbody>().velocity = new Vector3(0, 1, 0) +  tr.transform.forward * 1;
+                    }
                 }
                 else if (hit.transform.name.Equals("Player4"))
                 {
                     hit.transform.GetComponent<Player4>().b_hit = true;
+                    hit.transform.GetComponent<Player4>().hp -= Power;
+                    if (hit.transform.GetComponent<Player4>().hp <= 0)
+                    {
+                        hit.transform.GetComponent<Player4>().GetComponent<Rigidbody>().velocity = new Vector3(0, 1, 0) +tr.transform.forward * 1;
+                    }
                 }
             }
             else if (hit.transform.tag == "floor")
@@ -49,8 +88,7 @@ public class Shot : MonoBehaviour {
             }
             Destroy(gameObject);
         }
-    }
-    /*void OnTriggerStay(Collider other)
+    }  /*void OnTriggerStay(Collider other)
     {
         if (other.tag == "Player"&&!name.Equals(other.transform.name)) // 03.04 추가 
         {

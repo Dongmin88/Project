@@ -6,24 +6,40 @@ public class FloorCheck : MonoBehaviour
 {
     public  bool Check;
     public float Hp;
-    private void Awake()
+    string Type;
+    byte r;
+    void Start()
     {
+        transform.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("EFValue");
+        transform.GetComponent<AudioSource>().Play();
         Check = false;
-        string Type = transform.name;
+        Type = transform.name;
         Type = Type.Substring(0, 2); // 바닥 오브젝트 타입별 HP 부여
         if(Type == "WF")
         {
             Hp = 30;
+            transform.GetComponent<Renderer>().material.color = new Color32(163, 97, 37, 0);
         }
         else if (Type == "SF")
         {
-            Hp = 40;
+            Hp = 50;
+            transform.GetComponent<Renderer>().material.color = new Color32(255, 255, 255, 0);
         }
     }
-    private void Update()
+    void Update()
     {
+            
+        if (Type == "WF"&&r<255) // 오브젝트 생성 효과
+        {
+           r += (byte)5;
+           transform.GetComponent<Renderer>().material.color = new Color32(163, 97, 37, r);
+        }
+        else if (Type == "SF"&&r<255) //""
+        {
+           r += (byte)5;
+           transform.GetComponent<Renderer>().material.color = new Color32(255, 255, 255, r);
+        }
         destroyfloor();
-
     }
     public void onRay() // 바닥 설치시 레이를 위로 쏴 있으면 히트 오브젝트 삭제
     {

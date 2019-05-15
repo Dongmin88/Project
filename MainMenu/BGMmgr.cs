@@ -9,6 +9,8 @@ public class BGMmgr : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        //옵션창
+        //게임 배경음 및 게임 효과음 설정
     }
 
     // Update is called once per frame

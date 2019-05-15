@@ -16,7 +16,6 @@ public class Player1 : MonoBehaviour
     public GameObject Pick;//곡괭이 오브젝트
     public GameObject camrotation; // 카메라 로테이션 조정
     public GameObject shot; // 총알 프리팹
-    //public GameObject CreatePosition;
     public GameObject Woodobj; // 나무 바닥 오브젝트 3.4 수정
     public GameObject Stoneobj; // 돌 바닥 오브젝트 3.4 수정
     public GameObject WoodWall; // 나무 벽 오브젝트 3.5 추가
@@ -28,17 +27,22 @@ public class Player1 : MonoBehaviour
     public Text CreateText; //오브젝트 설치 자원 텍스트
     public RawImage CreateImage; // 오브젝트 설치 자원 이미지
     public Transform shotposition; // 총알 포지션
-    public GameObject Gunrotation;
-    public GameObject ShotFire;
-    public GameObject ShotFire2;
-    public Transform FirePosition;
-    public ParticleSystem PS;
-    public GameObject P_position;
-    public GameObject Menu;
-    public AudioClip ShotSound;
-    public AudioClip AttackSound;
-    Slider HpBar;
-    Camera cam;
+    public GameObject Shotep1;//총구화염 이펙트
+    public GameObject Shotep2;//""
+    public Transform T_Shotep1;//총구화염 이펙트 출력 위치
+    public Transform T_Shotep2;//""
+    public ParticleSystem PS;//채집 모드 오브젝트 타격 시 생성 파티클
+    public ParticleSystem Blood;//총알 피격 시 생성 파티클
+    public GameObject P_position;//기준으로 이동
+    public GameObject Menu; // 옵션창
+    public GameObject ItemWindow;//총기류 상자 획득시 출력될 오브젝트
+    public GameObject AimPointer; // 사격모드 시 포인터
+    public GameObject Pointer; // ""
+    public AudioClip AttackSound;//어택 시 사운드
+    public GameObject MaterialImage;
+    public RectTransform Canvas;
+    Slider HpBar; // Hp바
+    Camera cam;//자신의 카메라
 
     GameObject selobj; // 건설 모드 시 선택되는 오브젝트
     GameObject gb; // 건설모드 설치되는 오브젝트
@@ -64,44 +68,51 @@ public class Player1 : MonoBehaviour
     //장전총알 및 보유 총알
     public int minBullet;
     public int maxBullet;
-
+    public int GunNum; // 총기 넘버
+    public string Guns; // 총기 이름
     int MinMaterial; // 건설에 필요한 최소 자원
     int MaxMaterial; // 건설에 필요한 보유 자원
     public int MaterialMode; // 1 = 나무 2 = 나무 3 = 철
-
-    int CreateMode2;//V키 누르면 높낮이 설정
+    int CreateMode2; // 추후 설정
+    //int CreateMode2;
     public int layerMask; // 레이 레이어마스크
-
-    float Speed = 1.5f;
-    float atk = 1.0f;
+    float Speed = 1.5f; //마우스 스피드
     float MouseX; // 마우스 위 아래 값
     float MouseY; // 마우스 좌 우 값
     float CreateDelay; // 건설 딜레이 및 사격 딜레이
     float AtkDleay; // 공격 모션 딜레이
     float MoveSpeed; //이동속도
     float Shotcam;
+    float ShotDelay;//총기사격 딜레이
+    public float GasDam; // 가스데미지
+    public float GasDamDelay;//가스 피격 시간 설정
     bool JumpCheck; // 점프 가능한지 체크
     bool CreateCheck; // 바닥오브젝트 설치 체크
     bool Atk; // 공격모션 체크
-    public bool b_hit;
+    public bool b_hit; // 총알 피격 유무 설정
     //플레이어 번호
     public int player = 0;
-    public int Player_number = 1;
+    public int Player_number;
     //랭킹 관련
     public int Survive_Number;
     //살아있는거
     public int Survive = 1;
 
+    //죽었을때 박스에 자원 넣기
+    public GameObject Playerbox;
+
     void Start()
     {
+        Guns = "";
+        GunNum = 0;
+        GasDam = 0.5f;
         Player_number = 1;
         Survive = 1;
         b_hit = false;
         Shotcam = 0;
-        CreateMode2 = 0;
         hp = 100;
         minBullet = 0;
-        maxBullet = 10;
+        maxBullet = 20;
         selobj = Woodobj;
         JumpCheck = true;
         MinMaterial = 10;
@@ -118,7 +129,7 @@ public class Player1 : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        Select_Team();
         if (player == Player_number)
         {
             UiText(); // UI 업데이트 요소 함수
@@ -129,6 +140,8 @@ public class Player1 : MonoBehaviour
             Hp();
             send_resource();
             send_status();
+            PlayerGunChange();
+            ShotPointer();
         }
         else if (player != Player_number)
         {
@@ -136,8 +149,8 @@ public class Player1 : MonoBehaviour
             Mostion();
             shotHit();
             transform.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("EFValue");
-            Set_Camera();//2-26
             set_position();
+            Set_Camera();//2-26
             Set_resource();
             receive_rayshot();
             receive_Fkey();
@@ -147,13 +160,14 @@ public class Player1 : MonoBehaviour
             receive_Ckey();
             receive_Rkey();
             Set_status();
+            EnemyGunChange();
+            logout_player();
         }
-        Select_Team();
         Mode2();
         Singleton.instance.Receive_MSG();
         Death();
     }
-
+    //서버에서 받아온 적 플레이어 정보 갱신
     public void receive_Fkey()//2-28
     {
         if (Player_number == Singleton.instance.pFkey[Player_number].player)
@@ -180,11 +194,11 @@ public class Player1 : MonoBehaviour
     }
     public void receive_Vkey()//2-28
     {
-        if (Player_number == Singleton.instance.pVkey[Player_number].player)
+        /*if (Player_number == Singleton.instance.pVkey[Player_number].player)
         {
             set_Vkey();
             Singleton.instance.Reset_Vkey(Player_number);
-        }
+        }*/
     }
     public void receive_Ckey()//2-28
     {
@@ -221,8 +235,9 @@ public class Player1 : MonoBehaviour
         bool fMove = ani.GetBool("FMove");
         bool bMove = ani.GetBool("BMove");
         bool Run = ani.GetBool("Run");
+        bool Atk = ani.GetBool("ATK");
         float sp = MoveSpeed;
-        Singleton.instance.Send_PositionMSG(Player_number, px, py, pz, dx, dy, dz,sp,fMove,bMove,Run);
+        Singleton.instance.Send_PositionMSG(Player_number, px, py, pz, dx, dy, dz,sp,fMove,bMove,Run,Atk);
     }//update 서버
     public void set_position()
     {
@@ -238,9 +253,11 @@ public class Player1 : MonoBehaviour
             bool fm = Singleton.instance.Position[Player_number].fm;
             bool bm = Singleton.instance.Position[Player_number].bm;
             bool run = Singleton.instance.Position[Player_number].run;
+            bool atk = Singleton.instance.Position[Player_number].atk;
             ani.SetBool("FMove", fm);
             ani.SetBool("BMove", bm);
             ani.SetBool("Run", run);
+            ani.SetBool("ATK", atk);
             MoveSpeed = sp;
             this.transform.position = new Vector3(px, py, pz);
             this.transform.eulerAngles = new Vector3(dx, dy, dz);
@@ -304,7 +321,7 @@ public class Player1 : MonoBehaviour
     }
     public void send_status()
     {
-        Singleton.instance.Send_Status(Player_number, hp, minBullet, maxBullet, Mode, CreateMode2, MaterialMode);
+        Singleton.instance.Send_Status(Player_number, hp, minBullet, maxBullet, Mode, CreateMode2, MaterialMode,GunNum);
     }
     public void Set_status()
     {
@@ -316,37 +333,65 @@ public class Player1 : MonoBehaviour
             Mode = Singleton.instance.pStatus[Player_number].Mode;
             CreateMode2 = Singleton.instance.pStatus[Player_number].CreateMode2;
             MaterialMode = Singleton.instance.pStatus[Player_number].MaterialMode;
+            GunNum = Singleton.instance.pStatus[Player_number].GunNum;
             Singleton.instance.Reset_status(Player_number);
         }
     }
     public void Rays()
     {
         RaycastHit rayhit;
-        if (Mode == 1 && minBullet > 0) //사격 모드 레이 03.04 수정중
+        if (Mode ==0)
         {
-            transform.GetComponent<AudioSource>().clip = ShotSound;
-            transform.GetComponent<AudioSource>().maxDistance = 100;
+            Atk = true;
+            transform.GetComponent<AudioSource>().clip = AttackSound;
             transform.GetComponent<AudioSource>().Play();
+            if (player == Player_number)
+            {
+                if (Physics.Raycast(cam.transform.position, cam.transform.forward, out rayhit, 0.2f, layerMask))
+                {
+                    DIE_M dies = rayhit.transform.GetComponent<DIE_M>();
+                    if (dies != null)
+                    {
+                        ParticleSystem PCS = Instantiate(PS.gameObject).GetComponent<ParticleSystem>();
+                        PCS.transform.position = new Vector3(rayhit.transform.position.x, transform.position.y + 0.2f, rayhit.transform.position.z);
+                        PCS.transform.LookAt(transform);
+                        PCS.Play();
+                        dies.ondie(Player_number);
+                    }
+                }
+            }
+        }
+        else if (Mode == 1 && minBullet > 0) //사격 모드 레이 03.04 수정중
+        {
+            if (player == Player_number&&cam.fieldOfView > 10)
+            {
+                GameObject Sep1 = Instantiate(Shotep1, T_Shotep1);
+                GameObject Sep2 = Instantiate(Shotep2, T_Shotep1);
+            }
+            else
+            {
+                GameObject Sep1 = Instantiate(Shotep1, T_Shotep2);
+                GameObject Sep2 = Instantiate(Shotep2, T_Shotep2);
+            }
             GameObject gShot = Instantiate(shot, shotposition);
-            Instantiate(ShotFire, FirePosition);
-            Instantiate(ShotFire2, FirePosition);
+            gShot.GetComponent<Shot>().name = Guns;
             gShot.GetComponent<Shot>().layermask = layerMask;
+            MouseX += G_Rebound(Guns, 2);
+            MouseY += G_Rebound(Guns, 1);
             shotposition.DetachChildren();
             ani.SetLayerWeight(1, 0.8f);
             minBullet--;
         }
-        else if (Mode == 2)
+        else if (Mode == 2) // 빌트박스를 통해 건물 오브젝트 설치
         {
             if (MinMaterial <= MaxMaterial)
             {
-                // 빌드박스 기준으로 오브젝트 설치 187 ~ 209 // 2.28 작업중
                 if (Buildbox.active)
                 {
                     float dis = Vector3.Distance(cam.transform.position, Buildbox.transform.position);
                     Vector3 v3 = Buildbox.transform.position - cam.transform.position;
                     if (Physics.Raycast(cam.transform.position, v3, out rayhit,dis,LayerMask.NameToLayer("UI"))) // 중복체크
                     {
-                        Debug.Log(rayhit.transform.name);
                         if (rayhit.transform.tag == "floor")
                         {
                             CreateCheck = false;
@@ -362,10 +407,11 @@ public class Player1 : MonoBehaviour
                     }
                     if (Buildbox.GetComponent<buildbox>().Check && CreateCheck)
                     {
-                        gb = Instantiate(selobj);
-                        gb.transform.position = Buildbox.transform.position;
                         MaxMaterial -= MinMaterial;
                         MaterialChange(MaxMaterial);
+                        Singleton.instance.Send_Floor(MaterialMode, Buildbox.transform.position.x, Buildbox.transform.position.y, Buildbox.transform.position.z);
+                        gb = Instantiate(selobj);
+                        gb.transform.position = Buildbox.transform.position;
                     }
                 }
                 else if (Buildbox2.active)
@@ -381,15 +427,8 @@ public class Player1 : MonoBehaviour
                 }
             }
         }
-        else if(Mode==0)
-        {
-            Atk = true;
-            transform.GetComponent<AudioSource>().clip = AttackSound;
-            transform.GetComponent<AudioSource>().maxDistance = 1;
-            transform.GetComponent<AudioSource>().Play();
-        }
     }
-    public void UiText()
+    public void UiText() // Player의 자원 이미지 및 체력바 && 선택된 Mode 이미지 출력
     {
         Woodtext.text = " X " + Wood;
         Stonetext.text = " X " + Stone;
@@ -421,13 +460,13 @@ public class Player1 : MonoBehaviour
         if (b_hit)
         {
             Hpep.SetActive(true);
-            hp -= 10;
             b_hit = false;
         }
     }
-    public void CharacterControl()
+    public void CharacterControl() // 캐릭터 컨트롤러 
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        CreateDelay += Time.deltaTime;
+        if (Input.GetKeyDown(KeyCode.Escape)) // 게임 도중 옵션창을 불러냅니다. 
         {
             if (Menu.active)
             {
@@ -435,14 +474,24 @@ public class Player1 : MonoBehaviour
             }
             else if (!Menu.active)
             {
-                Menu.SetActive(true);
-                Cursor.visible = true;
+                if (ItemWindow.active)
+                {
+                    ItemWindow.SetActive(false);
+                }
+                else
+                {
+                    Menu.SetActive(true);
+                    Cursor.visible = true;
+                }
             }
         }
-        if (!Menu.active)
+        if (ItemWindow.active) // 아이템상자 획득 시 마우스커서 On
+        {
+            Cursor.visible = true;
+        }
+        if (!Menu.active&&!ItemWindow.active&&hp>0) // 옵셩창과 아이템상자창이 Active 되어있지 않고 Hp가 0보다 높아야지만 캐릭터 컨트롤 가능
         {
             Cursor.visible = false;
-            CreateDelay += Time.deltaTime;
             Mostion();
             CharecterMove();
             MouseMove();
@@ -452,7 +501,7 @@ public class Player1 : MonoBehaviour
                 Singleton.instance.Send_FkeyMSG(Player_number);
                 set_Fkey();//28일 수정
             }
-            if (Input.GetKeyDown(KeyCode.R))// 총알 재장전
+            if (Input.GetKeyDown(KeyCode.R) && Mode==1)// 총알 재장전
             {
                 Singleton.instance.Send_RkeyMSG(Player_number);
                 BulletReload();
@@ -464,32 +513,50 @@ public class Player1 : MonoBehaviour
                     Singleton.instance.Send_ZkeyMSG(Player_number);
                     set_Zkey();
                 }
-                else if (Input.GetKeyDown(KeyCode.X)) // 건설모드 시 벽 오브젝트로 변경
+                /*else if (Input.GetKeyDown(KeyCode.X)) // 건설모드 시 벽 오브젝트로 변경
                 {
                     Singleton.instance.send_XkeyMSG(Player_number);
                     set_Xkey();
                     //selobj = objCreate2;
-                }
-                else if (Input.GetKeyDown(KeyCode.C))
+                }*/
+                else if (Input.GetKeyDown(KeyCode.C)) // 건설 오브젝트 Type 바꾸기 Wood or Stone
                 {
                     Singleton.instance.Send_CkeyMSG(Player_number);
                     set_Ckey();
                 }
-                if (Input.GetKeyDown(KeyCode.V)) //빌드 박스 위치 전환 
+                /*if (Input.GetKeyDown(KeyCode.V)) //빌드 박스 위치 전환 
                 {
                     Singleton.instance.Send_VkeyMSG(Player_number);
                     set_Vkey();
-                }
+                }*/
                 if (Buildbox.active) //3.5 수정
                 {
                     //Singleton.instance.Send_Buildbox1MSG(Player_number);
                     buildbox1();
                 }
             }
-            if (Input.GetMouseButtonUp(0) && CreateDelay > 0.5f)
+            if (Input.GetMouseButton(0) && CreateDelay > ShotDelay && Mode ==1) // 사격 모드 일때 마우스 버튼 클릭 시 함수 작동
             {
                 send_rayshot();
-                Rays(); // 2.26일 수정
+                Rays();
+                CreateDelay = 0;
+            }
+            else if (CreateDelay > ShotDelay) // 총을 쏘는 동안 마우스의 이동속도를 제한한 것을 풀어줌.
+            {
+                Speed = 1.5f;
+            }
+            if(Input.GetMouseButtonUp(0)&& Mode == 0 &&!Atk)// 채집모드일때 마우스 버튼 클릭 시 사운드 교체 및 애니메이션 교체
+            {
+                transform.GetComponent<AudioSource>().clip = AttackSound;
+                transform.GetComponent<AudioSource>().Play();
+                Atk = true;
+                send_rayshot();
+                Rays();
+            }
+            if (Input.GetMouseButtonUp(0) &&CreateDelay >0.3f && Mode == 2) // 건설 모드일때 마우스 버튼 클릭 시 함수 작동
+            {
+                send_rayshot();
+                Rays();
                 CreateDelay = 0;
             }
             if (Input.GetKey(KeyCode.LeftShift))//달리기
@@ -513,22 +580,55 @@ public class Player1 : MonoBehaviour
     {
         if (other.tag == "Gas") // 독가스에 맞을 시 체력 감소 및 판넬 On
         {
-            hp -= 0.03f;
             if (player == Player_number)
-                Gas.SetActive(true);
-        }
-        if (other.tag == "BulletBox" && Mode == 0 || other.tag == "wood" && Mode == 0 || other.tag == "stone" && Mode == 0)
-        {
-            if (Input.GetMouseButtonUp(0) && CreateDelay > 0.5f)
             {
-                DIE_M dies = other.transform.GetComponent<DIE_M>();
-                if (dies != null)
+                Gas.SetActive(true);
+                GasDamDelay += Time.deltaTime;
+                if (GasDamDelay > 1)
                 {
-                    ParticleSystem PCS = Instantiate(PS.gameObject).GetComponent<ParticleSystem>();
-                    PCS.transform.position = new Vector3(other.transform.position.x, transform.position.y + 0.2f, other.transform.position.z);
-                    PCS.transform.LookAt(transform);
-                    PCS.Play();
-                    dies.ondie(Player_number);
+                    hp -= GasDam;
+                    GasDamDelay = 0;
+                }
+            }
+        }
+        if (player == Player_number)
+        {
+            if (other.tag == "PlayerBox") // 적 플레이어 사망후 남는 시체상자를 채집
+            {
+                if (Input.GetMouseButtonUp(0) && Mode == 0)
+                {
+                    Atk = true;
+                    transform.GetComponent<AudioSource>().clip = AttackSound;
+                    transform.GetComponent<AudioSource>().Play();
+                    PlayerBox PB = other.transform.GetComponent<PlayerBox>();
+                    if (PB != null)
+                    {
+                        ParticleSystem PCS = Instantiate(PS.gameObject).GetComponent<ParticleSystem>();
+                        PCS.transform.position = new Vector3(other.transform.position.x, transform.position.y + 0.2f, other.transform.position.z);
+                        PCS.transform.LookAt(transform);
+                        PCS.Play();
+                        PB.ondie(Player_number);
+                    }
+                    CreateDelay = 0;
+                }
+            }
+            if (other.tag == "SupplyBox") // 게임 도중 떨어지는 보급상자를 채집
+            {
+                if (Input.GetMouseButtonUp(0) && Mode == 0)
+                {
+                    Atk = true;
+                    transform.GetComponent<AudioSource>().clip = AttackSound;
+                    transform.GetComponent<AudioSource>().Play();
+                    SupplyBox SB = other.GetComponent<SupplyBox>();
+                    if (SB != null)
+                    {
+                        ParticleSystem PCS = Instantiate(PS.gameObject).GetComponent<ParticleSystem>();
+                        PCS.transform.position = new Vector3(other.transform.position.x, transform.position.y + 0.2f, other.transform.position.z);
+                        PCS.transform.LookAt(transform);
+                        PCS.Play();
+                        SB.onDemage(Player_number);
+                    }
+                    CreateDelay = 0;
                 }
             }
         }
@@ -536,6 +636,7 @@ public class Player1 : MonoBehaviour
     private void OnTriggerExit(Collider other) // 독가스 탈출 시 판넬 Off
     {
         Gas.SetActive(false);
+        GasDamDelay = 0;
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -565,13 +666,13 @@ public class Player1 : MonoBehaviour
     float fCal2(float fx, int ix) //설치 오브젝트 높 낮이 조정
     {
         fx = Mathf.Round(fx * 10) * 0.1f;
-        if (CreateMode2 == 2)
+        if (MouseX < -20)
         {
-            fx -= 0.3f;
+            fx -= 0.5f;
         }
         else
         {
-            fx -= 0.1f;
+            fx -= 0.2f;
         }
         float rx = ix + fx;
         return rx;
@@ -602,10 +703,10 @@ public class Player1 : MonoBehaviour
             rx = -rx;
         return rx;
     }*/
-    void buildbox1() //2.28 수정중
+    void buildbox1() // 빌드박스 위치 설정.
     {
-        Buildbox.transform.position = transform.position + transform.forward * 0.3f;
-        Buildbox.transform.localPosition += new Vector3(0, 0.15f, 0);
+        Buildbox.transform.position = transform.position + transform.forward * 0.4f;
+        Buildbox.transform.localPosition += new Vector3(0, 0.35f, 0);
         int ix = (int)Buildbox.transform.position.x;
         float fx = Buildbox.transform.position.x % 1f;
         float rx = fCal(fx, ix);
@@ -688,7 +789,7 @@ public class Player1 : MonoBehaviour
         }
         CreateText.text = MaxMaterial + " / " + MinMaterial;
     }
-    void MaterialChange(int MaxMaterial)
+    void MaterialChange(int MaxMaterial) // 건물 오브젝트 설치 후 자원 감소
     {
         if (MaterialMode == 1)
         {
@@ -699,55 +800,100 @@ public class Player1 : MonoBehaviour
             Stone = MaxMaterial;
         }
     }
-    public void set_Fkey()
+    public void set_Fkey() // 플레이어의 모드 설정 0 == 채집 1 == 사격 2 == 건설
     {
-        if (Mode == 0)
+        if (Mode == 0)// Mode가 0일때 F키를 누르게 되면 들어온다.
         {
+            if (player == Player_number) //자기자신이 플레이하는 캐릭터 일 경우 PlayerViewGun이 켜지고 아니면 EnemyViewGun이 켜진다.
+            {
+                PlayerViewGun.SetActive(true); // 나의 총기 표시
+            }
+            else
+            {
+                EnemyViewGun.SetActive(true); // 적군의 총기 표시.
+            }
+            EnemyViewGun.GetComponent<GunView>().ViewGun(GunNum); // 총기 정보를 넘겨줌
+            PlayerViewGun.GetComponent<GunView>().ViewGun(GunNum); // ""
+            if (Guns.Equals("AK-74m")) //총기 종류에 따라 발사간격을 다르게 줌.
+            {
+                ShotDelay = 0.15f;
+            }
+            else if (Guns.Equals("M4A1_PBR"))
+            {
+                ShotDelay = 0.1f;
+            }
+            else if (Guns.Equals("RevolverM1879"))
+            {
+                ShotDelay = 0.8f;
+            }
             Shotcam = -20;
+            MouseY += 20;
             Mode = 1;
+            if (Guns.ToString() == "") // 총기가 없을 경우 건설모드로 넘겨진다.
+            {
+                Mode = 2;
+                Buildbox.SetActive(true);
+            }
         }
-        else if (Mode == 1)
+        else if (Mode == 1) // 사격모드 일때 F키를 누르면 들어오게 된다.
         {
             Mode = 2;
-            Buildbox.SetActive(true);
+            Buildbox.SetActive(true); // 건설에 필요한 빌드박스를 화면에 출력
+            MouseY -= 20;
             Shotcam = 0;
+            if (player == Player_number) // 사격모드 일때 출력된 총기류를 꺼준다.
+            {
+                PlayerViewGun.SetActive(false);
+            }
+            else
+            {
+                EnemyViewGun.SetActive(false);
+            }
         }
-        else
+        else // 채집모드
         {
+            if (player == Player_number) 
+            {
+                PlayerViewGun.SetActive(false);
+            }
+            else
+            {
+                EnemyViewGun.SetActive(false);
+            }
             Mode = 0;
             Buildbox.SetActive(false);//
             Buildbox2.SetActive(false);
             Shotcam = 0;
         }
     }//2-28
-    public void set_Zkey()
+    public void set_Zkey() //바닥 오브젝트를 선택
     {
         Buildbox.SetActive(true);
         Buildbox2.SetActive(false);
-        selobj = Woodobj; // 3.04 수정
+        selobj = Woodobj;
     }
-    public void set_Xkey()
+    public void set_Xkey() // 벽 오브젝트 선택
     {
         Buildbox2.SetActive(true);
         Buildbox.SetActive(false);
         selobj = WoodWall;
     }
-    public void set_Ckey()
+    public void set_Ckey() // 건물 오브젝트 Type 변경
     {
         MaterialMode++;
-        if (MaterialMode == 4)
+        if (MaterialMode == 3)
         {
             MaterialMode = 1;
         }
     }
-    public void set_Vkey()
+    /*public void set_Vkey()
     {
         CreateMode2++;
         if (CreateMode2 == 3)
         {
             CreateMode2 = 1;
         }
-    }
+    }*/
     public void Multi_UiText()
     {
         if (Mode == 2)
@@ -766,25 +912,32 @@ public class Player1 : MonoBehaviour
             }
         }
     }
-    public void Death()
+    public void Death() //플레이어 사망 체크
     {
-        if (Singleton.instance.Survive_Number == 1)
+        if (Singleton.instance.Survive_Number == 1 && Survive == 1)
         {
             Cursor.visible = true;
             Singleton.instance.Set_win();
-            if (player == Player_number)
-                SceneManager.LoadScene("GameOver");
+            StartCoroutine("victory");
         }
         if (hp <= 0&&Survive==1)
         {
+            ani.SetFloat("Hp", hp);
             Survive = 0;
-            Singleton.instance.Set_rank();
             StartCoroutine("Destroy");
         }
     }
-    IEnumerator Destroy()
+    IEnumerator victory()//승리시 들어오게 되는 코루틴
     {
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(3);
+
+        if (player == Player_number)
+            SceneManager.LoadScene("GameOver");
+    }
+    IEnumerator Destroy() //플레이어 사망 시 들어오게 되는 코루틴
+    {
+        yield return new WaitForSeconds(2);
+        Singleton.instance.Set_rank();
         if (player == Player_number)
             SceneManager.LoadScene("GameOver");
         Destroy(gameObject);
@@ -824,12 +977,12 @@ public class Player1 : MonoBehaviour
                 ani.SetBool("Run", false);
             }
     }
-    void MouseMove()
+    void MouseMove() //마우스 위치를 받아와 캐릭터의 Rotation을 바꾸어 준다.
     {
         MouseY += Speed * Input.GetAxis("Mouse X");
         MouseX += Speed * Input.GetAxis("Mouse Y");
-        MouseX = Mathf.Clamp(MouseX, -60f, 60f); // 마우스 최소값 최대값 설정
-        this.transform.eulerAngles = new Vector3(0, MouseY, 0);
+        MouseX = Mathf.Clamp(MouseX, -60f, 80f); // 마우스 최소값 최대값 설정
+        this.transform.eulerAngles = new Vector3(0,MouseY, 0);
         camrotation.transform.eulerAngles = new Vector3(-MouseX, Shotcam + MouseY, 0); // 마우스 위 아래 좌표 따라 변경
         P_position.transform.localRotation = Quaternion.Euler(0, Shotcam, 0);
 
@@ -838,16 +991,19 @@ public class Player1 : MonoBehaviour
     {
         if (Mode == 0)
         {
+            cam.fieldOfView = 60;
             Pick.SetActive(true);
-            ani.SetBool("ATK", Atk);
-            ani.SetLayerWeight(1,0.5f);
+            ani.SetLayerWeight(1, 0.5f);
             if (Atk)
             {
+                ani.SetBool("ATK", Atk);
+                ani.SetLayerWeight(1,0.8f);
                 AtkDleay += Time.deltaTime;
                 if (AtkDleay > 0.5f)
                 {
                     AtkDleay = 0;
                     Atk = false;
+                    ani.SetBool("ATK", Atk);
                 }
             }
         }
@@ -876,8 +1032,10 @@ public class Player1 : MonoBehaviour
                 cam.fieldOfView = 60;
             }
         }
-        else
+        else if(Mode==2)
         {
+            cam.fieldOfView = 60;
+            ani.SetLayerWeight(1, 0.5f);
             ani.SetBool("Shot", false);
             if (transform.gameObject.layer == 9)
             {
@@ -889,7 +1047,7 @@ public class Player1 : MonoBehaviour
             }
         }
     }
-    void Change()
+    void Change() //게임 시작시 설정된 Layer를 바꾸어준다.
     {
         Transform[] tb = gameObject.GetComponentsInChildren<Transform>();
         foreach (Transform tbs in tb)
@@ -900,12 +1058,21 @@ public class Player1 : MonoBehaviour
             }
         }
         layerMask = (-1) - (1 << gameObject.layer);
-    }//레이어 체인지
+    }
     void BulletReload() // 총알 재장전
     {
+        int Reload;
+        if (Guns.Equals("AK-74m") || Guns.Equals("M4A1_PBR"))
+        {
+            Reload = 30;
+        }
+        else
+        {
+            Reload = 5;
+        }
         if (maxBullet > 0)
         {
-            for (int i = minBullet; i < 5;)
+            for (int i = minBullet; i < Reload;)
             {
                 if (maxBullet <= 0)
                 {
@@ -922,17 +1089,132 @@ public class Player1 : MonoBehaviour
         if (Survive_Number != Singleton.instance.Survive_Number)
             Survive_Number = Singleton.instance.Survive_Number;
     }
-    void Hp()
+    void Hp() // HpBar 설정
     {
         HpBar = GameObject.FindGameObjectWithTag("HP").GetComponent<Slider>();
         HpBar.value = hp;
     }
-    void shotHit()
+    void shotHit() //총알에 맞았을 경우 작동
     {
         if (b_hit)
         {
-            hp -= 10;
+            ParticleSystem ps = Instantiate(Blood.gameObject, transform).GetComponent<ParticleSystem>();
+            ps.Play();
             b_hit = false;
+        }
+    }
+    float G_Rebound(string GunName, int Type) //총기류 반동 설정
+    {
+        float rebound = 0;
+        if (Type == 1)
+        {
+            if (GunName.Equals("AK-74m"))
+            {
+                float[] ft = { 0, -0.5f, 0.5f };
+                rebound = ft[Random.Range(1, 3)];
+            }
+            else if (GunName.Equals("M4A1_PBR"))
+            {
+                float[] ft = { 0, -0.4f, 0.4f };
+                rebound = ft[Random.Range(1, 3)];
+            }
+            else if (GunName.Equals("RevolverM1879"))
+            {
+                rebound = 0;
+            }
+        }
+        else if (Type == 2)
+        {
+            if (GunName.Equals("AK-74m"))
+            {
+                rebound = 1f;
+                Speed = 0.2f;
+            }
+            else if (GunName.Equals("M4A1_PBR"))
+            {
+                rebound = 0.8f;
+                Speed = 0.2f;
+            }
+            else if (GunName.Equals("RevolverM1879"))
+            {
+                rebound = 5;
+                Speed = 1.5f;
+            }
+        }
+        return rebound;
+    }
+    void PlayerGunChange() // 획득한 총기를 Int형으로 바꾸어 서버로 넘겨줌
+    {
+        if (Guns.Equals("AK-74m"))
+        {
+            GunNum = 1;
+        }
+        else if (Guns.Equals("M4A1_PBR"))
+        {
+            GunNum = 2;
+        }
+        else if (Guns.Equals("RevolverM1879"))
+        {
+            GunNum = 3;
+        }
+    }
+    void EnemyGunChange() // 서버에서 받은 Int형 값으로 총기류 설정
+    {
+        if (GunNum == 1)
+        {
+            Guns = "AK-74m";
+        }
+        else if (GunNum == 2)
+        {
+            Guns = "M4A1_PBR";
+        }
+        else if (GunNum == 3)
+        {
+            Guns = "RevolverM1879";
+        }
+    }
+    private void OnDestroy() //플레이어가 죽고 시체상자를 남김
+    {
+        GameObject PBox = Instantiate(Playerbox);
+        PBox.transform.position = this.transform.position;
+        PBox.GetComponent<PlayerBox>().Wood = Wood;
+        PBox.GetComponent<PlayerBox>().Stone = Stone;
+        PBox.GetComponent<PlayerBox>().Bullet = maxBullet;
+    }
+    public void GetMaterial(float Material, string Name)// 보급상자 획득 재료 이미지 출력
+    {
+        MaterialImage.name = Name;
+        MaterialImage.transform.GetComponent<ImageMove>().Cv = Canvas;
+        MaterialImage.transform.GetComponent<ImageMove>().FNum = Material;
+        RawImage Ri = Instantiate(MaterialImage.GetComponent<RawImage>(), Canvas);
+    }
+    void ShotPointer()
+    {
+        if (Mode == 1)
+        {
+            if (cam.fieldOfView < 60)
+            {
+                AimPointer.SetActive(true);
+                Pointer.SetActive(false);
+            }
+            else if(cam.fieldOfView > 10)
+            {
+                AimPointer.SetActive(false);
+                Pointer.SetActive(true);
+            }
+        }
+        else
+        {
+            AimPointer.SetActive(false);
+            Pointer.SetActive(false);
+        }
+    }
+    void logout_player()
+    {
+        if (Player_number == Singleton.instance.logout.player)
+        {
+            hp = 0;
+            Singleton.instance.Reset_logout();
         }
     }
 }

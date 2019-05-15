@@ -138,21 +138,36 @@ public struct sStatus
     public float hp;
     public int bullet_Min;
     public int bullet_Max;
+    public int Mode;
+    public int CreateMode2;
+    public int MaterialMode;
+    public int GunNum;
 }
 public struct sObject_Tree
 {
     public char flag;
-    public string name;
+    public int status;
+    public int number;
 }
 public struct sObject_Stone
 {
     public char flag;
-    public string name;
+    public int status;
+    public int number;
 }
 public struct sObject_bullet
 {
     public char flag;
-    public string name;
+    public int status;
+    public int number;
+}
+public class sCreateBox_Floor
+{
+    public char flag;
+    public int kind;
+    public float fx;
+    public float fy;
+    public float fz;
 }
 public class stateObject
 {
@@ -179,9 +194,9 @@ public class Singleton : MonoBehaviour
     public sUserinfo Userinfo;
     public sLogin Login;
     public int Team_number;
-    public sPosition[] Position=new sPosition[5];
-    public sRayshot[] pRayshot=new sRayshot[5];
-    public sCamera[] pCamera=new sCamera[5];
+    public sPosition[] Position = new sPosition[5];
+    public sRayshot[] pRayshot = new sRayshot[5];
+    public sCamera[] pCamera = new sCamera[5];
     public sFkey[] pFkey = new sFkey[5];
     public sZkey[] pZkey = new sZkey[5];
     public sXkey[] pXkey = new sXkey[5];
@@ -216,6 +231,7 @@ public class Singleton : MonoBehaviour
     {
         var ep = new IPEndPoint(IPAddress.Parse("192.168.0.7"), 10000);//127.0.0.1
         C_socket.BeginConnect(ep, new AsyncCallback(ConnectCallback), C_socket);
+
     }
     private void Send(Socket client, byte[] buff)//send
     {
@@ -228,6 +244,7 @@ public class Singleton : MonoBehaviour
             stateObject state = new stateObject();
             state.worksocket = client;
             client.BeginReceive(state.buffer, 0, stateObject.buffersize, 0, new AsyncCallback(ReceiveCallback), state);
+
         }
         catch (Exception e)
         {
@@ -282,6 +299,7 @@ public class Singleton : MonoBehaviour
             {
                 state.sb.Append(Encoding.UTF8.GetString(state.buffer, 0, bytesread));
                 client.BeginReceive(state.buffer, 0, stateObject.buffersize, 0, new AsyncCallback(ReceiveCallback), state);
+
             }
             else
             {
@@ -382,7 +400,7 @@ public class Singleton : MonoBehaviour
         {
             Set_Stone(state.buffer);
         }
-        else if (Flag.flag==(char)eMSG.em_OBJECT_BULLET)
+        else if (Flag.flag == (char)eMSG.em_OBJECT_BULLET)
         {
             Set_Bullet(state.buffer);
         }
@@ -442,7 +460,7 @@ public class Singleton : MonoBehaviour
         byte[] data = StructureToByte(sRay);
         Send(C_socket, data);
     }
-    public void Send_PositionMSG(int player, float px, float py, float pz, float dx, float dy, float dz,float sp,bool fm,bool bm,bool run)
+    public void Send_PositionMSG(int player, float px, float py, float pz, float dx, float dy, float dz, float sp, bool fm, bool bm, bool run)
     {
         sPosition spo = new sPosition();
         spo.flag = (char)eMSG.em_USER_POSITION;
@@ -463,7 +481,7 @@ public class Singleton : MonoBehaviour
     public void Set_Position(byte[] buffer)
     {
         Position[0] = (sPosition)BytetoStruct(buffer, typeof(sPosition), 256);
-        for(int pa = 1; pa < 5; pa++)
+        for (int pa = 1; pa < 5; pa++)
         {
             if (Position[0].player == pa)
             {
@@ -482,7 +500,7 @@ public class Singleton : MonoBehaviour
     public void Set_Rayshot(byte[] buffer)
     {
         pRayshot[0] = (sRayshot)BytetoStruct(buffer, typeof(sRayshot), 256);
-        for(int pa = 1; pa < 5; pa++)
+        for (int pa = 1; pa < 5; pa++)
         {
             if (pRayshot[0].player == pa)
             {
@@ -503,7 +521,7 @@ public class Singleton : MonoBehaviour
     {
         Ready = 0;
     }
-    public void Send_CameraMSG(float dx, float dy,float dz,int player)
+    public void Send_CameraMSG(float dx, float dy, float dz, int player)
     {
         sCamera sCa = new sCamera();
         sCa.flag = (char)eMSG.em_USER_CAMERA;
@@ -518,7 +536,7 @@ public class Singleton : MonoBehaviour
     public void Set_Camera(byte[] buffer)
     {
         pCamera[0] = (sCamera)BytetoStruct(buffer, typeof(sCamera), 256);
-        for(int pa = 1; pa < 5; pa++)
+        for (int pa = 1; pa < 5; pa++)
         {
             if (pCamera[0].player == pa)
             {
@@ -527,6 +545,7 @@ public class Singleton : MonoBehaviour
             }
         }
     }
+
     //F_KEY
     public void Send_FkeyMSG(int player)
     {
@@ -539,7 +558,7 @@ public class Singleton : MonoBehaviour
     public void Set_Fkey(byte[] buffer)//2.28
     {
         pFkey[0] = (sFkey)BytetoStruct(buffer, typeof(sFkey), 256);
-        for(int pa = 1; pa < 5; pa++)
+        for (int pa = 1; pa < 5; pa++)
         {
             if (pFkey[0].player == pa)
             {
@@ -564,7 +583,7 @@ public class Singleton : MonoBehaviour
     public void Set_Zkey(byte[] buffer)//2.28
     {
         pZkey[0] = (sZkey)BytetoStruct(buffer, typeof(sZkey), 256);
-        for(int pa = 1; pa < 5; pa++)
+        for (int pa = 1; pa < 5; pa++)
         {
             if (pZkey[0].player == pa)
             {
@@ -724,6 +743,52 @@ public class Singleton : MonoBehaviour
 
         return readerResult.ReadToEnd();
     }
+    public string GameOver_Webserver(string id, int lose)
+    {
+        string url = "http://192.168.0.7:10001/GameOver";
+
+        StringBuilder sendInfo = new StringBuilder();
+        sendInfo.Append("id=" + id);
+        sendInfo.Append("&lose=" + lose);
+
+        HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+        byte[] byteArr = UTF8Encoding.UTF8.GetBytes(sendInfo.ToString());
+        httpWebRequest.ContentType = "application/x-www-form-urlencoded";
+        httpWebRequest.Method = "POST";
+        httpWebRequest.ContentLength = byteArr.Length;
+
+        Stream stream = httpWebRequest.GetRequestStream();
+        stream.Write(byteArr, 0, byteArr.Length);
+
+        HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+        Stream result = httpWebResponse.GetResponseStream();
+        StreamReader readerResult = new StreamReader(result, Encoding.Default);
+
+        return readerResult.ReadToEnd();
+    }
+    public string GameWin_Webserver(string id, int win)
+    {
+        string url = "http://192.168.0.7:10001/GameWin";
+
+        StringBuilder sendInfo = new StringBuilder();
+        sendInfo.Append("id=" + id);
+        sendInfo.Append("&win=" + win);
+
+        HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+        byte[] byteArr = UTF8Encoding.UTF8.GetBytes(sendInfo.ToString());
+        httpWebRequest.ContentType = "application/x-www-form-urlencoded";
+        httpWebRequest.Method = "POST";
+        httpWebRequest.ContentLength = byteArr.Length;
+
+        Stream stream = httpWebRequest.GetRequestStream();
+        stream.Write(byteArr, 0, byteArr.Length);
+
+        HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+        Stream result = httpWebResponse.GetResponseStream();
+        StreamReader readerResult = new StreamReader(result, Encoding.Default);
+
+        return readerResult.ReadToEnd();
+    }
     public void Login_success(string msg)
     {
         Userinfo = JsonUtility.FromJson<sUserinfo>(msg);
@@ -744,7 +809,7 @@ public class Singleton : MonoBehaviour
     public void Set_Gamedeath(byte[] buffer)
     {
         pGamedeath[0] = (sGamedeath)BytetoStruct(buffer, typeof(sGamedeath), 256);
-        for(int pa = 1; pa < 5; pa++)
+        for (int pa = 1; pa < 5; pa++)
         {
             if (pGamedeath[0].player == pa)
             {
@@ -771,7 +836,7 @@ public class Singleton : MonoBehaviour
     {
         Rank = Survive_Number;
     }
-    public void Send_Resource(int Player_Number,int Wood,int Stone)
+    public void Send_Resource(int Player_Number, int Wood, int Stone)
     {
         sResource sRs = new sResource();
         sRs.flag = (char)eMSG.em_USER_RESOURCE;
@@ -797,7 +862,7 @@ public class Singleton : MonoBehaviour
     {
         pResource[Player_number].player = 0;
     }
-    public void Send_Status(int Player_Number,float hp,int bullet_Min,int bullet_Max)
+    public void Send_Status(int Player_Number, float hp, int bullet_Min, int bullet_Max, int Mode, int CreateMode2, int MaterialMode,int GunNum)
     {
         sStatus sSt = new sStatus();
         sSt.flag = (char)eMSG.em_USER_STATUS;
@@ -805,13 +870,17 @@ public class Singleton : MonoBehaviour
         sSt.hp = hp;
         sSt.bullet_Min = bullet_Min;
         sSt.bullet_Max = bullet_Max;
+        sSt.Mode = Mode;
+        sSt.CreateMode2 = CreateMode2;
+        sSt.MaterialMode = MaterialMode;
+        sSt.GunNum = GunNum;
         byte[] data = StructureToByte(sSt);
         Send(C_socket, data);
     }
     public void Set_status(byte[] buffer)
     {
         pStatus[0] = (sStatus)BytetoStruct(buffer, typeof(sStatus), 256);
-        for(int pa = 1; pa < 5; pa++)
+        for (int pa = 1; pa < 5; pa++)
         {
             if (pStatus[0].player == pa)
             {
@@ -824,13 +893,18 @@ public class Singleton : MonoBehaviour
     {
         pStatus[Player_number].player = 0;
     }
-    public void Send_Tree(string name)
+    public void Reset_Camera(int Player_number)
+    {
+        pCamera[Player_number].player = 0;
+    }
+    public void Send_Tree(int number)
     {
         sObject_Tree sOT = new sObject_Tree();
         sOT.flag = (char)eMSG.em_OBJECT_TREE;
-        sOT.name = name;
+        sOT.status = 1;
+        sOT.number = number;
         byte[] data = StructureToByte(sOT);
-        Send(C_socket,data);
+        Send(C_socket, data);
     }
     public void Set_Tree(byte[] buffer)
     {
@@ -838,14 +912,14 @@ public class Singleton : MonoBehaviour
     }
     public void Reset_Tree()
     {
-        pTree.flag = ' ';
-        pTree.name = "";
+        pTree.status = 0;
     }
-    public void Send_Stone(string name)
+    public void Send_Stone(int number)
     {
         sObject_Stone sOS = new sObject_Stone();
         sOS.flag = (char)eMSG.em_OBJECT_STONE;
-        sOS.name = name;
+        sOS.status = 1;
+        sOS.number = number;
         byte[] data = StructureToByte(sOS);
         Send(C_socket, data);
     }
@@ -855,14 +929,14 @@ public class Singleton : MonoBehaviour
     }
     public void Reset_Stone()
     {
-        pStone.flag = ' ';
-        pStone.name = "";
+        pStone.status = 0;
     }
-    public void Send_Bullet(string name)
+    public void Send_Bullet(int number)
     {
         sObject_bullet sOB = new sObject_bullet();
         sOB.flag = (char)eMSG.em_OBJECT_BULLET;
-        sOB.name = name;
+        sOB.number = number;
+        sOB.status = 1;
         byte[] data = StructureToByte(sOB);
         Send(C_socket, data);
     }
@@ -872,7 +946,6 @@ public class Singleton : MonoBehaviour
     }
     public void Reset_Bullet()
     {
-        pBullet.flag = ' ';
-        pBullet.name = "";
+        pBullet.status = 0;
     }
 }

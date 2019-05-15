@@ -14,35 +14,40 @@ public class GameOverM : MonoBehaviour
     void Start()
     {
         Cursor.visible = true;
-        Rank = Singleton.instance.Rank;   
+        Rank = Singleton.instance.Rank;
+        if (Rank == 1)
+        {
+            Singleton.instance.GameWin_Webserver(Singleton.instance.Userinfo.id, Singleton.instance.Userinfo.Win);
+        }
+        else if (Rank != 1)
+        {
+            Singleton.instance.GameOver_Webserver(Singleton.instance.Userinfo.id, Singleton.instance.Userinfo.Lose);
+        }
+        Rankimage();
     }
 
     // Update is called once per frame
     void Update()
     {
-        Rankimage();
+
     }
     public void Rankimage()
     {
         if (Rank == 1)
         {
             first.SetActive(true);
-            Rank = 0;
         }
         else if (Rank == 2)
         {
             second.SetActive(true);
-            Rank = 0;
         }
         else if (Rank == 3)
         {
             third.SetActive(true);
-            Rank = 0;
         }
         else if (Rank == 4)
         {
             forth.SetActive(true);
-            Rank = 0;
         }
     }
 }

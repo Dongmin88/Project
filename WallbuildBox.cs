@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 public class WallbuildBox : MonoBehaviour
 {
-    public bool Check= true;
+    public bool Check;
 
+    private void Start()
+    {
+        Check = true;
+    }
     void Update()
     {
         Checker();

@@ -7,7 +7,8 @@ public class Inputmgr : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        //옵셩창
+        //게임 배경 및 게임 효과음 설정
     }
 
     // Update is called once per frame

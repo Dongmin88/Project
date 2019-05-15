@@ -19,7 +19,7 @@ public class buildbox : MonoBehaviour
     public void Rays() // 바닥 오브젝트 설치 가능 체크
     {
         RaycastHit hit;
-        if (Physics.Raycast(transform.position, -transform.up, out hit, 0.1f, 9))
+        if (Physics.Raycast(transform.position, -transform.up, out hit, 0.5f, 9))
         {
             Check = true;
         }

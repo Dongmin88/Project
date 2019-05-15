@@ -8,7 +8,7 @@ public class MainMenuM : MonoBehaviour
     public int Ready;
     private void Start()
     {
-        Ready = 2;
+        Ready = 4;
         Singleton.instance.Start_rank();
     }
     private void Update()

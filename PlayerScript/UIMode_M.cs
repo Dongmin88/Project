@@ -27,7 +27,7 @@ public class UIMode_M : MonoBehaviour
     {
         ChangeImage();
     }
-    void ChangeImage()
+    void ChangeImage() // 서버에서 플레이어 정보를 받아와 이미지 교체
     {
         if (Singleton.instance.Team_number == 1)
         {
