@@ -41,6 +41,7 @@ public class Player1 : MonoBehaviour
     public AudioClip AttackSound;//어택 시 사운드
     public GameObject MaterialImage;
     public RectTransform Canvas;
+    public GameObject CreateBoxM;
     Slider HpBar; // Hp바
     Camera cam;//자신의 카메라
 
@@ -124,7 +125,7 @@ public class Player1 : MonoBehaviour
         Slot1 = GameObject.FindGameObjectWithTag("ItemSlot1").GetComponent<RawImage>();
         Slot2 = GameObject.FindGameObjectWithTag("ItemSlot2").GetComponent<RawImage>();
         cam = GetComponentInChildren<Camera>();
-    }
+}
 
     // Update is called once per frame
     void Update()
@@ -280,6 +281,7 @@ public class Player1 : MonoBehaviour
                 Woodtext = GameObject.FindGameObjectWithTag("WoodText").GetComponent<Text>();
                 Stonetext = GameObject.FindGameObjectWithTag("StoneText").GetComponent<Text>();
                 Bullettext = GameObject.FindGameObjectWithTag("BulletText").GetComponent<Text>();
+                CreateBoxM.transform.GetComponent<CreateBoxM>().PlayerNum = Player_number;
             }
             else if (player != Player_number)
             {
@@ -358,10 +360,14 @@ public class Player1 : MonoBehaviour
                         PCS.Play();
                         dies.ondie(Player_number);
                     }
+                    if (rayhit.transform.tag == "Player")
+                    {
+                        rayhit.transform.GetComponent<Rigidbody>().velocity = new Vector3(0, 1, 0) + transform.forward * 1.5f;
+                    }
                 }
             }
         }
-        else if (Mode == 1 && minBullet > 0) //사격 모드 레이 03.04 수정중
+        else if (Mode == 1 && minBullet > 0) //사격 모드
         {
             if (player == Player_number&&cam.fieldOfView > 10)
             {
@@ -409,7 +415,7 @@ public class Player1 : MonoBehaviour
                     {
                         MaxMaterial -= MinMaterial;
                         MaterialChange(MaxMaterial);
-                        Singleton.instance.Send_Floor(MaterialMode, Buildbox.transform.position.x, Buildbox.transform.position.y, Buildbox.transform.position.z);
+                        Singleton.instance.Send_Floor(MaterialMode, Buildbox.transform.position.x, Buildbox.transform.position.y, Buildbox.transform.position.z,Player_number);
                         gb = Instantiate(selobj);
                         gb.transform.position = Buildbox.transform.position;
                     }
@@ -759,7 +765,7 @@ public class Player1 : MonoBehaviour
         }
         Buildbox2.transform.position = new Vector3(rx, ry, rz);
     }*/
-    void CreateModeUi() // 건설 모드 ui 이미지 및 텍스트 교체  * 3.5 수정 
+    void CreateModeUi() // 건설 모드 ui 이미지 및 텍스트 교체 
     {
         if (MaterialMode == 1)
         {

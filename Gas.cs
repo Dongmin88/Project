@@ -19,7 +19,7 @@ public class Gas : MonoBehaviour {
     // Use this for initialization
     void Start () {
         Ps = transform.GetComponentInChildren<ParticleSystem>();
-        Delay = 150;
+        Delay = 180;
         Phase = 1;
         Gasheight = 10;
         p1 = FindObjectOfType<Player1>();

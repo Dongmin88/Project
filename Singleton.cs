@@ -191,6 +191,7 @@ public struct sCreateBox_Floor//박스 만들 때
     public float fx;
     public float fy;
     public float fz;
+    public int PlayerNum;
 }
 public class stateObject//버퍼 관련
 {
@@ -1053,7 +1054,7 @@ public class Singleton : MonoBehaviour
             }
         }
     }*/
-    public void Send_Floor(int type,float fx,float fy,float fz)//박스 메시지
+    public void Send_Floor(int type,float fx,float fy,float fz,int Player_Num)//박스 메시지
     {
         sCreateBox_Floor SCF = new sCreateBox_Floor();
         SCF.flag = (char)eMSG.em_OBJECT_FLOOR;
@@ -1061,6 +1062,7 @@ public class Singleton : MonoBehaviour
         SCF.fy = fy;
         SCF.fz = fz;
         SCF.kind = type;
+        SCF.PlayerNum = Player_Num;
         byte[] data = StructureToByte(SCF);
         Send(C_socket, data);
     }

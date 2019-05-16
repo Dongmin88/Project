@@ -36,6 +36,8 @@ public class Player3 : MonoBehaviour
     public GameObject P_position;//기준으로 이동
     public GameObject Menu; // 옵션창
     public GameObject ItemWindow;//총기류 상자 획득시 출력될 오브젝트
+    public GameObject AimPointer; // 사격모드 시 포인터
+    public GameObject Pointer; // ""
     public AudioClip AttackSound;//어택 시 사운드
     public GameObject MaterialImage;
     public RectTransform Canvas;
@@ -82,14 +84,11 @@ public class Player3 : MonoBehaviour
     float MoveSpeed; //이동속도
     float Shotcam;
     float ShotDelay;//총기사격 딜레이
-    float ImageMove;
     public float GasDam; // 가스데미지
     public float GasDamDelay;//가스 피격 시간 설정
     bool JumpCheck; // 점프 가능한지 체크
     bool CreateCheck; // 바닥오브젝트 설치 체크
     bool Atk; // 공격모션 체크
-    bool Atk1;
-    bool Mobj;
     public bool b_hit; // 총알 피격 유무 설정
     //플레이어 번호
     public int player = 0;
@@ -141,6 +140,7 @@ public class Player3 : MonoBehaviour
             send_resource();
             send_status();
             PlayerGunChange();
+            ShotPointer();
         }
         else if (player != Player_number)
         {
@@ -160,6 +160,7 @@ public class Player3 : MonoBehaviour
             receive_Rkey();
             Set_status();
             EnemyGunChange();
+            logout_player();
         }
         Mode2();
         Singleton.instance.Receive_MSG();
@@ -635,7 +636,6 @@ public class Player3 : MonoBehaviour
     {
         Gas.SetActive(false);
         GasDamDelay = 0;
-        Mobj = false;
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -1031,9 +1031,10 @@ public class Player3 : MonoBehaviour
                 cam.fieldOfView = 60;
             }
         }
-        else
+        else if (Mode == 2)
         {
             cam.fieldOfView = 60;
+            ani.SetLayerWeight(1, 0.5f);
             ani.SetBool("Shot", false);
             if (transform.gameObject.layer == 9)
             {
@@ -1185,5 +1186,34 @@ public class Player3 : MonoBehaviour
         MaterialImage.transform.GetComponent<ImageMove>().Cv = Canvas;
         MaterialImage.transform.GetComponent<ImageMove>().FNum = Material;
         RawImage Ri = Instantiate(MaterialImage.GetComponent<RawImage>(), Canvas);
+    }
+    void ShotPointer()
+    {
+        if (Mode == 1)
+        {
+            if (cam.fieldOfView < 60)
+            {
+                AimPointer.SetActive(true);
+                Pointer.SetActive(false);
+            }
+            else if(cam.fieldOfView > 10)
+            {
+                AimPointer.SetActive(false);
+                Pointer.SetActive(true);
+            }
+        }
+        else
+        {
+            AimPointer.SetActive(false);
+            Pointer.SetActive(false);
+        }
+    }
+    void logout_player()
+    {
+        if (Player_number == Singleton.instance.logout.player)
+        {
+            hp = 0;
+            Singleton.instance.Reset_logout();
+        }
     }
 }

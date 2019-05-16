@@ -41,6 +41,7 @@ public class Player4 : MonoBehaviour
     public AudioClip AttackSound;//어택 시 사운드
     public GameObject MaterialImage;
     public RectTransform Canvas;
+    public GameObject CreateBoxM;
     Slider HpBar; // Hp바
     Camera cam;//자신의 카메라
 
@@ -237,7 +238,7 @@ public class Player4 : MonoBehaviour
         bool Run = ani.GetBool("Run");
         bool Atk = ani.GetBool("ATK");
         float sp = MoveSpeed;
-        Singleton.instance.Send_PositionMSG(Player_number, px, py, pz, dx, dy, dz, sp, fMove, bMove, Run, Atk);
+        Singleton.instance.Send_PositionMSG(Player_number, px, py, pz, dx, dy, dz,sp,fMove,bMove,Run,Atk);
     }//update 서버
     public void set_position()
     {
@@ -280,6 +281,7 @@ public class Player4 : MonoBehaviour
                 Woodtext = GameObject.FindGameObjectWithTag("WoodText").GetComponent<Text>();
                 Stonetext = GameObject.FindGameObjectWithTag("StoneText").GetComponent<Text>();
                 Bullettext = GameObject.FindGameObjectWithTag("BulletText").GetComponent<Text>();
+                CreateBoxM.transform.GetComponent<CreateBoxM>().PlayerNum = Player_number;
             }
             else if (player != Player_number)
             {
@@ -358,6 +360,10 @@ public class Player4 : MonoBehaviour
                         PCS.Play();
                         dies.ondie(Player_number);
                     }
+                    if (rayhit.transform.tag == "Player")
+                    {
+                        rayhit.transform.GetComponent<Rigidbody>().velocity = new Vector3(0, 1, 0) + transform.forward * 1.5f;
+                    }
                 }
             }
         }
@@ -409,7 +415,7 @@ public class Player4 : MonoBehaviour
                     {
                         MaxMaterial -= MinMaterial;
                         MaterialChange(MaxMaterial);
-                        Singleton.instance.Send_Floor(MaterialMode, Buildbox.transform.position.x, Buildbox.transform.position.y, Buildbox.transform.position.z);
+                        Singleton.instance.Send_Floor(MaterialMode, Buildbox.transform.position.x, Buildbox.transform.position.y, Buildbox.transform.position.z,Player_number);
                         gb = Instantiate(selobj);
                         gb.transform.position = Buildbox.transform.position;
                     }

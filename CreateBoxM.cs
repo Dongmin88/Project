@@ -6,7 +6,7 @@ public class CreateBoxM : MonoBehaviour
 {
     public GameObject Woodobj;
     public GameObject stoneobj;
-
+    public int PlayerNum;
     // Start is called before the first frame update
     void Start()
     {
@@ -20,17 +20,20 @@ public class CreateBoxM : MonoBehaviour
     }
     public void structure_Box()
     {
-        if (Singleton.instance.CreateBox_Floor.kind == 1)
+        if (Singleton.instance.CreateBox_Floor.PlayerNum != PlayerNum)
         {
-            GameObject WF = Instantiate(Woodobj);
-            WF.transform.position = new Vector3(Singleton.instance.CreateBox_Floor.fx, Singleton.instance.CreateBox_Floor.fy, Singleton.instance.CreateBox_Floor.fz);
-            Singleton.instance.Reset_Floor();
-        }
-        else if (Singleton.instance.CreateBox_Floor.kind == 2)
-        {
-            GameObject SF=Instantiate(stoneobj);
-            SF.transform.position = new Vector3(Singleton.instance.CreateBox_Floor.fx, Singleton.instance.CreateBox_Floor.fy, Singleton.instance.CreateBox_Floor.fz);
-            Singleton.instance.Reset_Floor();
+            if (Singleton.instance.CreateBox_Floor.kind == 1)
+            {
+                GameObject WF = Instantiate(Woodobj);
+                WF.transform.position = new Vector3(Singleton.instance.CreateBox_Floor.fx, Singleton.instance.CreateBox_Floor.fy, Singleton.instance.CreateBox_Floor.fz);
+                Singleton.instance.Reset_Floor();
+            }
+            else if (Singleton.instance.CreateBox_Floor.kind == 2)
+            {
+                GameObject SF = Instantiate(stoneobj);
+                SF.transform.position = new Vector3(Singleton.instance.CreateBox_Floor.fx, Singleton.instance.CreateBox_Floor.fy, Singleton.instance.CreateBox_Floor.fz);
+                Singleton.instance.Reset_Floor();
+            }
         }
     }
 }
